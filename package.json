@@ -1,8 +1,8 @@
 {
 	"name": "takappapi",
-	"description": "Cloudflare's native serverless SQL database.",
+	"description": "",
 	"cloudflare": {
-		"label": "Worker + D1 Database",
+		"label": "",
 		"products": [
 			"Workers",
 			"D1"
@@ -27,5 +27,8 @@
 		"dev": "pnpm seedLocalD1 && wrangler dev",
 		"predeploy": "wrangler d1 migrations apply DB --remote",
 		"seedLocalD1": "wrangler d1 migrations apply DB --local"
+	},
+	"dependencies": {
+		"itty-router": "^5.0.23"
 	}
 }
