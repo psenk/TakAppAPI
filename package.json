@@ -1,6 +1,7 @@
 {
 	"name": "takappapi",
 	"description": "",
+	"type": "module",
 	"cloudflare": {
 		"label": "",
 		"products": [

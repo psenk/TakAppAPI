@@ -1,13 +1,22 @@
 DROP TABLE IF EXISTS Players;
+DROP TABLE IF EXISTS LoginTokens;
 DROP TABLE IF EXISTS ActiveGames;
 DROP TABLE IF EXISTS GamesHistory;
 
 CREATE TABLE IF NOT EXISTS Players -- settings saved locally currently
 (
     PlayerId INTEGER PRIMARY KEY AUTOINCREMENT,
-    PlayerDateCreated TEXT NOT NULL, -- ISO 8601
     PlayerName TEXT NOT NULL,
-    PlayerAuth TEXT NOT NULL
+    PlayerAuth TEXT NOT NULL,
+    PlayerDateCreated TEXT NOT NULL -- ISO 8601
+);
+
+CREATE TABLE IF NOT EXISTS LoginTokens
+(
+    TokenId INTEGER PRIMARY KEY AUTOINCREMENT,
+    Token TEXT NOT NULL UNIQUE,
+    TokenExpiresAt INTEGER NOT NULL,
+    TokenPlayerId INTEGER NOT NULL REFERENCES Players(PlayerId)
 );
 
 CREATE TABLE IF NOT EXISTS ActiveGames
