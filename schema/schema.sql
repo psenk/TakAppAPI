@@ -1,7 +1,7 @@
-DROP TABLE IF EXISTS Players;
 DROP TABLE IF EXISTS LoginTokens;
 DROP TABLE IF EXISTS ActiveGames;
 DROP TABLE IF EXISTS GamesHistory;
+DROP TABLE IF EXISTS Players;
 
 CREATE TABLE IF NOT EXISTS Players -- settings saved locally currently
 (
