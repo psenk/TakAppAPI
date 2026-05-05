@@ -25,8 +25,9 @@ router.post("/api/login", async (request, env) => {
         return new Response("Invalid login request", { status: 400 });
     }
 
-    const player = await env.DB
-        .prepare("SELECT * FROM Players WHERE PlayerName = ?;")
+    const player = await env.DB.prepare(
+        "SELECT * FROM Players WHERE PlayerName = ?;",
+    )
         .bind(credentials.name)
         .first();
 
@@ -39,13 +40,12 @@ router.post("/api/login", async (request, env) => {
     } else {
         const loginToken = crypto.randomUUID();
         const expirationDate = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
-        const token = await env.DB
-            .prepare(
-                "INSERT INTO LoginTokens (Token, TokenExpiresAt, TokenPlayerId) VALUES (?, ?, ?);",
-            )
+        const token = await env.DB.prepare(
+            "INSERT INTO LoginTokens (Token, TokenExpiresAt, TokenPlayerId) VALUES (?, ?, ?);",
+        )
             .bind(loginToken, expirationDate, player.PlayerId)
             .run();
-        return new Response(JSON.stringify({ token: loginToken }), {
+        return new Response(JSON.stringify({ sessionToken: loginToken }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
         });
@@ -65,8 +65,9 @@ router.post("/api/register", async (request, env) => {
         return new Response("Missing required fields", { status: 400 });
     }
 
-    const doesUserAlreadyExist = await env.DB
-        .prepare("SELECT * FROM Players WHERE PlayerName = ?;")
+    const doesUserAlreadyExist = await env.DB.prepare(
+        "SELECT * FROM Players WHERE PlayerName = ?;",
+    )
         .bind(playerRegisterBody.name)
         .first();
 
@@ -76,10 +77,9 @@ router.post("/api/register", async (request, env) => {
         return new Response("Username taken", { status: 400 });
     }
 
-    const player = await env.DB
-        .prepare(
-            "INSERT INTO Players (PlayerName, PlayerAuth, PlayerDateCreated) VALUES (?, ?, ?);",
-        )
+    const player = await env.DB.prepare(
+        "INSERT INTO Players (PlayerName, PlayerAuth, PlayerDateCreated) VALUES (?, ?, ?);",
+    )
         .bind(
             playerRegisterBody.name,
             playerRegisterBody.auth,
@@ -88,13 +88,12 @@ router.post("/api/register", async (request, env) => {
         .run();
     const loginToken = crypto.randomUUID();
     const expirationDate = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
-    const token = await env.DB
-        .prepare(
-            "INSERT INTO LoginTokens (Token, TokenExpiresAt, TokenPlayerId) VALUES (?, ?, ?);",
-        )
+    const token = await env.DB.prepare(
+        "INSERT INTO LoginTokens (Token, TokenExpiresAt, TokenPlayerId) VALUES (?, ?, ?);",
+    )
         .bind(loginToken, expirationDate, player.meta.last_row_id)
         .run();
-    return new Response(JSON.stringify({ token: token }), {
+    return new Response(JSON.stringify({ sessionToken: loginToken }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
     });
@@ -185,10 +184,10 @@ BOARD STATES:
 - GAME_OVER
 */
 
-function print_board(board) {
-    const board_size = Math.sqrt(board.length);
-    console.log(board_size);
-}
+// unmatched routes
+router.all("*", () => new Response("Not found", { status: 404 }));
 
-let example_board = [[0], [0], [0], [0], [0], [0], [0], [0], [0]];
-print_board(example_board);
+// main export
+export default {
+    fetch: (request, env) => router.fetch(request, env),
+};
