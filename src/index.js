@@ -1,14 +1,12 @@
-import { Router } from "itty-router";
+import { Router } from 'itty-router';
+import bcrypt, { hash } from 'bcryptjs';
 
 // create router instance
 const router = Router();
+const SALT_ROUNDS = 10;
 
 /*
-auth endpoint for login
-
-- check username
-- check hashed password
-- assign api key for continued app use??
+- TODO: clear expired session tokens
 */
 
 // POST - player login
@@ -34,8 +32,9 @@ router.post("/api/login", async (request, env) => {
     if (!player) {
         return new Response("User does not exist", { status: 400 });
     }
+    console.log(player.PlayerAuth)
 
-    if (credentials.auth != player.PlayerAuth) {
+    if (await !bcrypt.compare(credentials.auth, player.PlayerAuth)) {
         return new Response("Incorrect password", { status: 400 });
     } else {
         const loginToken = crypto.randomUUID();
@@ -71,18 +70,18 @@ router.post("/api/register", async (request, env) => {
         .bind(playerRegisterBody.name)
         .first();
 
-    // TODO: check for valid password
-
     if (doesUserAlreadyExist) {
         return new Response("Username taken", { status: 400 });
     }
+
+    const hashedPassword = await bcrypt.hash(playerRegisterBody.auth, SALT_ROUNDS);
 
     const player = await env.DB.prepare(
         "INSERT INTO Players (PlayerName, PlayerAuth, PlayerDateCreated) VALUES (?, ?, ?);",
     )
         .bind(
             playerRegisterBody.name,
-            playerRegisterBody.auth,
+            hashedPassword.toString(),
             new Date().toISOString(),
         )
         .run();

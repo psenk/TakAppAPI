@@ -30,6 +30,7 @@
 		"seedLocalD1": "wrangler d1 migrations apply DB --local"
 	},
 	"dependencies": {
+		"bcryptjs": "^3.0.3",
 		"itty-router": "^5.0.23"
 	}
 }
