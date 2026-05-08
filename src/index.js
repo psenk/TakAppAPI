@@ -44,7 +44,7 @@ router.post("/api/login", async (request, env) => {
         )
             .bind(loginToken, expirationDate, player.PlayerId)
             .run();
-        return new Response(JSON.stringify({ sessionToken: loginToken }), {
+        return new Response(JSON.stringify({ sessionToken: loginToken, expiresAt: expirationDate }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
         });
@@ -92,7 +92,7 @@ router.post("/api/register", async (request, env) => {
     )
         .bind(loginToken, expirationDate, player.meta.last_row_id)
         .run();
-    return new Response(JSON.stringify({ sessionToken: loginToken }), {
+    return new Response(JSON.stringify({ sessionToken: loginToken, expiresAt: expirationDate }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
     });
