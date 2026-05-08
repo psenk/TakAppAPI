@@ -38,7 +38,7 @@ router.post("/api/login", async (request, env) => {
         return new Response("Incorrect password", { status: 400 });
     } else {
         const loginToken = crypto.randomUUID();
-        const expirationDate = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+        const expirationDate = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
         const token = await env.DB.prepare(
             "INSERT INTO LoginTokens (Token, TokenExpiresAt, TokenPlayerId) VALUES (?, ?, ?);",
         )
@@ -86,7 +86,7 @@ router.post("/api/register", async (request, env) => {
         )
         .run();
     const loginToken = crypto.randomUUID();
-    const expirationDate = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+    const expirationDate = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7;
     const token = await env.DB.prepare(
         "INSERT INTO LoginTokens (Token, TokenExpiresAt, TokenPlayerId) VALUES (?, ?, ?);",
     )
