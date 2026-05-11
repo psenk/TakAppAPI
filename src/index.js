@@ -1,5 +1,5 @@
-import { Router } from 'itty-router';
-import bcrypt, { hash } from 'bcryptjs';
+import { Router } from "itty-router";
+import bcrypt, { hash } from "bcryptjs";
 
 // create router instance
 const router = Router();
@@ -8,6 +8,12 @@ const SALT_ROUNDS = 10;
 /*
 - TODO: clear expired session tokens
 */
+
+/**
+ * NOTES:
+ * - PLAYER A IS ALWAYS BLACK
+ * - PLAYER B IS ALWAYS WHITE
+ */
 
 // POST - player login
 router.post("/api/login", async (request, env) => {
@@ -32,7 +38,6 @@ router.post("/api/login", async (request, env) => {
     if (!player) {
         return new Response("User does not exist", { status: 400 });
     }
-    console.log(player.PlayerAuth)
 
     if (await !bcrypt.compare(credentials.auth, player.PlayerAuth)) {
         return new Response("Incorrect password", { status: 400 });
@@ -44,10 +49,10 @@ router.post("/api/login", async (request, env) => {
         )
             .bind(loginToken, expirationDate, player.PlayerId)
             .run();
-        return new Response(JSON.stringify({ sessionToken: loginToken, expiresAt: expirationDate }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-        });
+        return Response.json(
+            { sessionToken: loginToken, expiresAt: expirationDate },
+            { status: 200 },
+        );
     }
 });
 
@@ -74,7 +79,10 @@ router.post("/api/register", async (request, env) => {
         return new Response("Username taken", { status: 400 });
     }
 
-    const hashedPassword = await bcrypt.hash(playerRegisterBody.auth, SALT_ROUNDS);
+    const hashedPassword = await bcrypt.hash(
+        playerRegisterBody.auth,
+        SALT_ROUNDS,
+    );
 
     const player = await env.DB.prepare(
         "INSERT INTO Players (PlayerName, PlayerAuth, PlayerDateCreated) VALUES (?, ?, ?);",
@@ -92,10 +100,38 @@ router.post("/api/register", async (request, env) => {
     )
         .bind(loginToken, expirationDate, player.meta.last_row_id)
         .run();
-    return new Response(JSON.stringify({ sessionToken: loginToken, expiresAt: expirationDate }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-    });
+    return Response.json(
+        { sessionToken: loginToken, expiresAt: expirationDate },
+        { status: 200 },
+    );
+});
+
+// POST - return players active games
+router.post("/api/activegames", async (request, env) => {
+    const sessionToken = request.headers.get("Authorization");
+    if (!sessionToken || !sessionToken.startsWith("Bearer ")) {
+        return new Response("Invalid authorization", { status: 400 });
+    }
+
+    const token = sessionToken.substring(7);
+    const session  = await env.DB.prepare(
+        "SELECT * FROM LoginTokens WHERE Token = ?;",
+    )
+        .bind(token)
+        .first();
+
+    if (!session) {
+        return new Response("Invalid session token", { status: 400 });
+    }
+
+    const player = session.TokenPlayerId;
+    const { results: activeGamesList } = await env.DB.prepare(
+        "SELECT * FROM ActiveGames WHERE GamePlayerIdA = ? OR GamePlayerIdB = ?;",
+    )
+        .bind(player, player)
+        .all();
+
+    return Response.json({ activeGames: activeGamesList });
 });
 
 /*
