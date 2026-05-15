@@ -7,12 +7,20 @@ const SALT_ROUNDS = 10;
 
 /*
 - TODO: clear expired session tokens
+- TODO: secondary token?
 */
 
 /**
  * NOTES:
  * - PLAYER A IS ALWAYS BLACK
  * - PLAYER B IS ALWAYS WHITE
+ * - A1 SQUARE IS ALWAYS DARK SQUARE
+ *
+ * FOR FUTURE:
+ * - Call Tak option (like calling check)
+ * - Call Tinue(two dots over e) checkmate
+ * - PTN - Portable Tak Notation - recording moves https://ustak.org/portable-tak-notation/
+ * - TPS - Tak Positional System - position of all pieces on board https://ustak.org/tak-positional-system-tps/
  */
 
 // POST - player login
@@ -108,30 +116,30 @@ router.post("/api/register", async (request, env) => {
 
 // POST - return players active games
 router.post("/api/activegames", async (request, env) => {
-    const sessionToken = request.headers.get("Authorization");
-    if (!sessionToken || !sessionToken.startsWith("Bearer ")) {
-        return new Response("Invalid authorization", { status: 400 });
-    }
+    const playerId = await getUserFromSessionToken(request, env);
 
-    const token = sessionToken.substring(7);
-    const session  = await env.DB.prepare(
-        "SELECT * FROM LoginTokens WHERE Token = ?;",
-    )
-        .bind(token)
-        .first();
-
-    if (!session) {
-        return new Response("Invalid session token", { status: 400 });
-    }
-
-    const player = session.TokenPlayerId;
     const { results: activeGamesList } = await env.DB.prepare(
         "SELECT * FROM ActiveGames WHERE GamePlayerIdA = ? OR GamePlayerIdB = ?;",
     )
-        .bind(player, player)
+        .bind(playerId, playerId)
         .all();
 
     return Response.json({ activeGames: activeGamesList });
+});
+
+// POST - return players friends list
+router.post("/api/friends", async (request, env) => {
+    const playerId = await getUserFromSessionToken(request, env);
+
+    const result = await env.DB.prepare(
+        "SELECT PlayerFriends FROM Players WHERE PlayerId = ?",
+    )
+        .bind(playerId)
+        .first();
+
+        const friendsList = JSON.parse(result.PlayerFriends);
+
+    return Response.json({ friendsList });
 });
 
 /*
@@ -194,21 +202,6 @@ is game over
 
 /*
 read board state
-
-legend:
-0 - open tile
-1 - player A flat
-2 - player A wall
-3 - player A capstone
-4 - player B flat
-5 - player B wall
-6 - player B capstone
-
-- board state is 2D array
-- tiles in outer array
-- pieces on tiles in inner arrays
-- board size = root of board state size 
-- last item per tile item is top piece
 */
 
 /*
@@ -226,3 +219,22 @@ router.all("*", () => new Response("Not found", { status: 404 }));
 export default {
     fetch: (request, env) => router.fetch(request, env),
 };
+
+async function getUserFromSessionToken(request, env) {
+    const sessionToken = request.headers.get("Authorization");
+    if (!sessionToken || !sessionToken.startsWith("Bearer ")) {
+        return new Response("Invalid authorization", { status: 400 });
+    }
+    const token = sessionToken.substring(7);
+    const session = await env.DB.prepare(
+        "SELECT * FROM LoginTokens WHERE Token = ?;",
+    )
+        .bind(token)
+        .first();
+
+    if (!session) {
+        return new Response("Invalid session token", { status: 400 });
+    }
+
+    return session.TokenPlayerId;
+}
