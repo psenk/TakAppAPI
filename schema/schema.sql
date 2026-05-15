@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS Players -- settings saved locally currently
     PlayerId INTEGER PRIMARY KEY AUTOINCREMENT,
     PlayerName TEXT NOT NULL,
     PlayerAuth TEXT NOT NULL,
+    PlayerFriends TEXT DEFAULT "[]", -- JSON String
     PlayerDateCreated TEXT NOT NULL -- ISO 8601
 );
 
@@ -27,7 +28,7 @@ CREATE TABLE IF NOT EXISTS ActiveGames
     GamePlayerIdA INTEGER NOT NULL REFERENCES Players(PlayerId),
     GamePlayerIdB INTEGER NOT NULL REFERENCES Players(PlayerId),
     GameCurrentTurn INTEGER REFERENCES Players(PlayerId),
-    GameBoardState TEXT NOT NULL DEFAULT "None", -- Board State String
+    GameBoardState TEXT NOT NULL DEFAULT "None", -- TPS Board State String
     GameMoveHistory TEXT NOT NULL DEFAULT "[]" -- JSON String
 );
 
@@ -39,7 +40,7 @@ CREATE TABLE IF NOT EXISTS GamesHistory
     GamePlayerIdA INTEGER NOT NULL REFERENCES Players(PlayerId),
     GamePlayerIdB INTEGER NOT NULL REFERENCES Players(PlayerId),
     GameWinningPlayerId INTEGER NOT NULL REFERENCES Players(PlayerId),
-    GameBoardState TEXT NOT NULL DEFAULT "None", -- Board State String,
+    GameBoardState TEXT NOT NULL DEFAULT "None", -- TPS Board State String,
     GameMoveHistory INTEGER NOT NULL DEFAULT "[]" -- JSON String
 );
 

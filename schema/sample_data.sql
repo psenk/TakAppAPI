@@ -1,0 +1,3 @@
+UPDATE Players SET PlayerFriends = '[{"playerId": 2, "playerName": "test-user-2"},{"playerId": 3, "playerName": "test-user-3"}]' WHERE PlayerId = 1;
+UPDATE Players SET PlayerFriends = '[{"playerId": 1, "playerName": "test-user-1"},{"playerId": 2, "playerName": "test-user-2"}]' WHERE PlayerId = 3;
+UPDATE Players SET PlayerFriends = '[{"playerId": 1, "playerName": "test-user-1"},{"playerId": 3, "playerName": "test-user-3"}]' WHERE PlayerId = 2;
